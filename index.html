@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronics Store Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #495057;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+            color: #fff;
+        }
+        .sidebar .nav-link.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .status-badge {
+            font-size: 0.8em;
+            padding: 4px 8px;
+        }
+        .priority-high {
+            background-color: #dc3545;
+            color: white;
+        }
+        .priority-medium {
+            background-color: #ffc107;
+            color: black;
+        }
+        .priority-low {
+            background-color: #28a745;
+            color: white;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .priority-high {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .priority-medium {
+            background-color: #ffc107 !important;
+            color: black !important;
+        }
+        .priority-low {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="card login-card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-store"></i> Electronics Store Management</h4>
+            </div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                <div id="loginError" class="alert alert-danger mt-3 hidden"></div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        Demo accounts:<br>
+                        admin / admin123 (Backend)<br>
+                        sales1 / sales123 (Sales)
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2 p-0">
+                    <div class="sidebar">
+                        <div class="p-3 text-white">
+                            <h5><i class="fas fa-store"></i> Electronics Store</h5>
+                            <small id="userInfo"></small>
+                        </div>
+                        <nav class="nav flex-column">
+                            <a class="nav-link active" href="#" data-section="dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                            <a class="nav-link" href="#" data-section="orders">
+                                <i class="fas fa-shopping-cart"></i> Orders
+                            </a>
+                            <a class="nav-link" href="#" data-section="maintenance">
+                                <i class="fas fa-tools"></i> Maintenance
+                            </a>
+                            <a class="nav-link" href="#" data-section="history">
+                                <i class="fas fa-history"></i> History
+                            </a>
+                            <a class="nav-link" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-10">
+                    <div class="main-content">
+                        <!-- Dashboard Section -->
+                        <div id="dashboardSection" class="content-section">
+                            <h2>Dashboard</h2>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Order Statistics</h5>
+                                        </div>
+                                        <div class="card-body" id="orderStats">
+                                            Loading...
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Maintenance Statistics</h5>
+                                        </div>
+                                        <div class="card-body" id="maintenanceStats">
+                                            Loading...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orders Section -->
+                        <div id="ordersSection" class="content-section hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2>Orders Management</h2>
+                                <button id="createOrderBtn" class="btn btn-primary hidden">
+                                    <i class="fas fa-plus"></i> Create Order
+                                </button>
+                            </div>
+                            
+                            <!-- Filters -->
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <select class="form-select" id="orderStatusFilter">
+                                                <option value="">All Statuses</option>
+                                                <option value="Pending">Pending</option>
+                                                <option value="Billing">Billing</option>
+                                                <option value="Dispatched">Dispatched</option>
+                                                <option value="Delivered">Delivered</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" class="form-control" id="orderCustomerFilter" placeholder="Customer Name">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-secondary" onclick="loadOrders()">
+                                                <i class="fas fa-search"></i> Filter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Orders Table -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Total Value</th>
+                                                    <th>Status</th>
+                                                    <th>Order Date</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ordersTableBody">
+                                                <tr>
+                                                    <td colspan="6" class="text-center">Loading...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Maintenance Section -->
+                        <div id="maintenanceSection" class="content-section hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2>Maintenance Management</h2>
+                                <button class="btn btn-primary" onclick="showCreateMaintenanceModal()">
+                                    <i class="fas fa-plus"></i> Log Request
+                                </button>
+                            </div>
+                            
+                            <!-- Filters -->
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="maintenanceStatusFilter">
+                                                <option value="">All Statuses</option>
+                                                <option value="New">New</option>
+                                                <option value="Assigned">Assigned</option>
+                                                <option value="Picked Up">Picked Up</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Ready for Delivery">Ready for Delivery</option>
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="Cheque Collected">Cheque Collected</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="maintenancePriorityFilter">
+                                                <option value="">All Priorities</option>
+                                                <option value="High">High</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="Low">Low</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" class="form-control" id="maintenanceCustomerFilter" placeholder="Customer Name">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-secondary" onclick="loadMaintenanceRequests()">
+                                                <i class="fas fa-search"></i> Filter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Maintenance Table -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Device</th>
+                                                    <th>Priority</th>
+                                                    <th>Status</th>
+                                                    <th>Rider</th>
+                                                    <th>Request Date</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="maintenanceTableBody">
+                                                <tr>
+                                                    <td colspan="8" class="text-center">Loading...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals will be added here via JavaScript -->
+    <div id="modalContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
